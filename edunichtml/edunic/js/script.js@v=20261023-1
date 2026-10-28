@@ -1,0 +1,105 @@
+$(window).on("load", function() {
+    "use strict";
+
+    
+
+    // HEADER SEARCH 
+
+    $(".search-btn").on("click", function() {
+      $(".header-search").addClass("active");
+      return false;
+    });
+    $(".search-close-btn").on("click", function() {
+      $(".header-search").removeClass("active");
+    })
+
+    // STICKY HEADER 
+
+    // $(window).on("scroll", function () {
+    //     if ($(this).scrollTop() > 1) {
+    //         $("header").addClass("sticky animated slideInDown");
+    //     } else {
+    //         $("header").removeClass("sticky animated slideInDown");
+    //     }
+    // });
+
+    // CONTACT FORM VALIDATION  
+
+    // PAGE LOADER 
+
+    $(".page-loading").fadeOut();
+
+    // SCROLL TO TOP BUTTON
+
+	  $('.scrollTop').on("click", function(){
+        $('html, body').animate({scrollTop : 0},1000);
+        return false;
+    });
+
+	// handle links with @href started with '#' only
+	  $(document).on('click', 'a[href^="#"]', function(e) {
+	    // target element id
+	    var id = $(this).attr('href');
+
+	    // target element
+	    if (id === "#" || !id) return;
+    var $id = $(document.getElementById(id.slice(1)));
+	    if ($id.length === 0) {
+	        return;
+	    }
+
+	    // prevent standard hash navigation (avoid blinking in IE)
+	    e.preventDefault();
+
+	    // top position relative to the document
+	    var pos = $id.offset().top;
+
+	    // animated top scrolling
+	    $('body, html').animate({scrollTop: pos});
+	  });
+
+
+    // TOGGLE BUTTONS
+
+    $(".toggle").each(function(){
+        $(this).find('.content').hide();
+        $(this).find('h2:first').addClass('active').next().slideDown(500).parent().addClass("activate");
+        $('h2', this).on("click touchstart", function() {
+            if ($(this).next().is(':hidden')) {
+                $(this).parent().parent().parent().find("h2").removeClass('active').next().slideUp(500).removeClass('animated fadeInUp').parent().removeClass("activate");
+                $(this).toggleClass('active').next().slideDown(500).addClass('animated fadeInUp').parent().toggleClass("activate");
+            }
+        });
+    });
+
+    // ANIMATION ON DEFAULT THEME BUTTTON
+
+    $('.btn-animate').on('mouseenter', function(e) {
+      var parentOffset = $(this).offset(),
+      relX = e.pageX - parentOffset.left,
+      relY = e.pageY - parentOffset.top;
+      $(this).find('span').css({top:relY, left:relX})
+    }).on('mouseout', function(e) {
+      var parentOffset = $(this).offset(),
+      relX = e.pageX - parentOffset.left,
+      relY = e.pageY - parentOffset.top;
+      $(this).find('span').css({top:relY, left:relX})
+    });
+
+
+    //  ============= SIGNIN CONTROL FUNCTION =========
+
+    $('.our-mission').on("click", function(){
+        var tab_id = $(this).attr('data-tab');
+        $('.our-mission').removeClass('current');
+        $('.education-services').removeClass('current');
+        $(this).addClass('current animated fadeIn');
+        $("#"+tab_id).addClass('current animated fadeIn');
+        return false;
+    });
+    
+    $(".progress-bar").ProgressBar();
+  $(".collapse.show").parent().addClass("active").siblings().removeClass("active");  
+    
+});
+

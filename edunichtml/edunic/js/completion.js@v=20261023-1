@@ -1,0 +1,56 @@
+/* Edunic completion layer — The Black Pearls Pro */
+(function(){'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function toast(message){const el=document.createElement('div');el.className='ed-toast';el.setAttribute('role','status');el.textContent=message;document.body.append(el);setTimeout(()=>el.remove(),4500);}
+function readCart(){try{const data=JSON.parse(localStorage.getItem('edunic-cart')||'[]');return Array.isArray(data)?data.filter(i=>i&&i.id==='BOOK-001'&&typeof i.name==='string'&&Number.isFinite(i.quantity)&&i.quantity>=1&&i.quantity<=99):[];}catch(_){return [];}}
+function writeCart(items){try{localStorage.setItem('edunic-cart',JSON.stringify(items));return true;}catch(_){toast('Your browser could not save the selection. Please contact us directly.');return false;}}
+function renderCart(){const el=$('#cart-items');if(!el)return;el.replaceChildren();const items=readCart();if(!items.length){el.textContent='Your selection is empty.';return;}items.forEach((item,i)=>{const row=document.createElement('p');row.textContent=item.name+' × '+item.quantity+' — $'+(item.quantity*7.25).toFixed(2)+' ';const b=document.createElement('button');b.className='ed-button';b.textContent='Remove';b.onclick=()=>{items.splice(i,1);writeCart(items);renderCart();};row.append(b);el.append(row);});}
+document.addEventListener('click',e=>{const a=e.target.closest('a,button,.menu-btn');if(!a)return;
+if(a.matches('[data-menu],.menu-btn')){e.preventDefault();e.stopPropagation();const m=$('.responsive-mobile-menu');if(m){m.classList.toggle('active');a.setAttribute('aria-expanded',String(m.classList.contains('active')));} }
+if(!a.closest('.responsive-mobile-menu')&&!a.matches('[data-menu],.menu-btn'))$('.responsive-mobile-menu')?.classList.remove('active');
+if(a.matches('.plus-btn,.minus-btn')){const q=$('input',a.closest('.quantity'));if(q){e.preventDefault();e.stopImmediatePropagation();q.value=Math.min(99,Math.max(1,(Number(q.value)||1)+(a.matches('.plus-btn')?1:-1)));}}
+if(a.matches('[data-add-cart]')){e.preventDefault();const items=readCart(),q=Math.min(99,Math.max(1,Number($('.quantity input')?.value)||1));const item=items.find(x=>x.id==='BOOK-001');if(item)item.quantity=Math.min(99,item.quantity+q);else items.push({id:'BOOK-001',name:'Nature Picture Book',quantity:q});if(writeCart(items))toast('Added to your selection. Open Cart to review.');}
+if(a.matches('[data-wishlist]')){e.preventDefault();a.toggleAttribute('data-saved');a.setAttribute('aria-pressed',String(a.hasAttribute('data-saved')));toast(a.hasAttribute('data-saved')?'Product marked for this visit.':'Product unmarked.');}
+if(a.matches('[data-lightbox]')){e.preventDefault();const dialog=document.createElement('dialog');dialog.className='ed-lightbox';const img=document.createElement('img');img.src=a.href;img.alt=$('img',a)?.alt||'Campus photograph';const b=document.createElement('button');b.textContent='Close';b.onclick=()=>dialog.close();dialog.append(b,img);dialog.addEventListener('close',()=>{dialog.remove();a.focus();});document.body.append(dialog);dialog.showModal();}
+},true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('.responsive-mobile-menu')?.classList.remove('active');});
+$$('form').forEach(form=>{if(form.hasAttribute('data-search'))return;form.addEventListener('submit',async e=>{e.preventDefault();if(!form.reportValidity())return;const out=$('.form-response',form);if(form.hasAttribute('data-auth-demo')){out.textContent='Demo interaction complete. No account has been created and no credentials have been sent. Contact admissions for access.';return;}const b=$('[type="submit"]',form);if(b)b.disabled=true;out.classList.remove('ed-error');out.textContent='Sending…';const data=new FormData(form);data.set('purpose',form.dataset.purpose||'Website inquiry');try{const response=await fetch(form.action,{method:'POST',body:data,headers:{Accept:'application/json'}});let result;try{result=await response.json();}catch(_){throw Error('This server does not support the form handler. Email 7miles.infodesk@gmail.com directly.');}if(!response.ok||!result.ok)throw Error(result.message||'The message could not be sent.');out.textContent=result.message;form.reset();}catch(err){out.textContent=err.message||'Unable to connect. Please try again.';out.classList.add('ed-error');}finally{if(b)b.disabled=false;}});});
+renderCart();
+const results=$('#search-results');if(results){const q=new URLSearchParams(location.search).get('q')||'';const input=$('input[name=q]');if(input)input.value=q;if(q)fetch('js/search-index.json').then(r=>r.json()).then(pages=>{const matches=pages.filter(p=>(p.title+' '+p.text).toLowerCase().includes(q.toLowerCase()));const h=document.createElement('h2');h.textContent=matches.length+' results for “'+q+'”';results.append(h);const list=document.createElement('ul');list.className='ed-results';matches.forEach(p=>{const li=document.createElement('li'),a=document.createElement('a');a.href=p.url;a.textContent=p.title;li.append(a);list.append(li);});results.append(list);}).catch(()=>{results.textContent='Search could not load. Please browse All pages.';});}
+const counters=$$('.counter-area .counter-sec h3');if(counters.length===4){let end;try{end=Number(localStorage.getItem('edunic-launch'));if(!end){end=Date.now()+30*86400000;localStorage.setItem('edunic-launch',String(end));}}catch(_){end=Date.now()+30*86400000;}function tick(){const n=Math.max(0,Math.floor((end-Date.now())/1000));[Math.floor(n/86400),Math.floor(n/3600)%24,Math.floor(n/60)%60,n%60].forEach((v,i)=>counters[i].textContent=String(v).padStart(2,'0'));}tick();setInterval(tick,1000);}
+})();
+(function(){'use strict';
+function ready(){
+const jq=window.jQuery;
+if(jq&&jq.fn.slick){
+ const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const controls={
+  prevArrow:'<button type="button" class="ed-carousel-arrow ed-carousel-prev" aria-label="Previous slide"><span aria-hidden="true">‹</span></button>',
+  nextArrow:'<button type="button" class="ed-carousel-arrow ed-carousel-next" aria-label="Next slide"><span aria-hidden="true">›</span></button>',
+  dotsClass:'ed-carousel-dots',dots:true,arrows:true,autoplay:false,speed:reduced?0:350,
+  customPaging:function(slider,index){return '<button type="button" aria-label="Go to slide '+(index+1)+'">'+(index+1)+'</button>';}
+ };
+ const init=function(selector,options,hero){jq(selector).not('.slick-initialized').each(function(){
+  const element=jq(this);element.addClass('ed-carousel'+(hero?' ed-carousel-hero':''));
+  const config=Object.assign({},controls,options);
+  element.on('init reInit breakpoint',function(event,slick){
+   const count=slick.slideCount;const dots=element.children('.ed-carousel-dots').find('button');
+   dots.each(function(i){this.setAttribute('aria-label','Go to group '+(i+1)+' of '+dots.length);});
+  });
+  element.slick(config);
+ });};
+ init('.banner-slide',{slidesToShow:1,slidesToScroll:1,adaptiveHeight:true},true);
+ init('.gr-slider,.kritika-slider,.img-slider,.stories-slider',{slidesToShow:1,slidesToScroll:1,adaptiveHeight:true});
+ init('.lab-slider',{slidesToShow:3,slidesToScroll:3,responsive:[{breakpoint:992,settings:{slidesToShow:2,slidesToScroll:2}},{breakpoint:600,settings:{slidesToShow:1,slidesToScroll:1}}]});
+ init('.row.slider',{slidesToShow:4,slidesToScroll:4,responsive:[{breakpoint:992,settings:{slidesToShow:2,slidesToScroll:2}},{breakpoint:600,settings:{slidesToShow:1,slidesToScroll:1}}]});
+ // Recalculate after fonts, decoded images and responsive container widths settle.
+ const reposition=function(){jq('.ed-carousel.slick-initialized').each(function(){jq(this).slick('setPosition');});};
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(reposition);
+ window.addEventListener('load',reposition);
+ jq('.ed-carousel img').on('load',reposition);
+}
+document.querySelectorAll('[data-option-value]').forEach(a=>{a.setAttribute('href','#filter');a.addEventListener('click',e=>{e.preventDefault();const filter=a.dataset.optionValue;document.querySelectorAll('[data-option-value]').forEach(x=>x.classList.toggle('selected',x===a));document.querySelectorAll('.masonary > div').forEach(card=>card.hidden=filter!=='*'&&!card.matches(filter));});});
+const btn=document.querySelector('.menu-btn');if(btn){btn.setAttribute('aria-controls','mobile-menu');btn.setAttribute('aria-expanded','false');btn.setAttribute('role','button');btn.setAttribute('tabindex','0');btn.setAttribute('aria-label','Open navigation');btn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();btn.click();}});}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
+})();

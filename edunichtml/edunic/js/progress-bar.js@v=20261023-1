@@ -1,0 +1,32 @@
+/* Edunic progress indicators — The Black Pearls Pro. */
+(function ($) {
+  'use strict';
+  const observed = new WeakSet();
+  $.fn.ProgressBar = function () {
+    return this.each(function () {
+      if (observed.has(this)) return;
+      observed.add(this);
+      const container = this;
+      function reveal() {
+        Array.from(container.children).forEach(function (bar) {
+          const value = Math.max(0, Math.min(100, Number(bar.dataset.percent) || 0));
+          bar.style.width = value + '%';
+          if (bar.dataset.color) bar.style.backgroundColor = bar.dataset.color;
+          container.setAttribute('role', 'progressbar');
+          container.setAttribute('aria-valuenow', String(value));
+          container.setAttribute('aria-valuemin', '0');
+          container.setAttribute('aria-valuemax', '100');
+          container.setAttribute('aria-label', 'Progress');
+        });
+      }
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(function (entries) {
+          if (entries.some(function (entry) { return entry.isIntersecting; })) {
+            reveal(); observer.disconnect();
+          }
+        });
+        observer.observe(container);
+      } else reveal();
+    });
+  };
+})(jQuery);
